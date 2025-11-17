@@ -1,0 +1,213 @@
+-- 🌙 MOONS BYPASS v3 (Bypass GUI com Teleport corrigido)
+if getgenv().moonsBypassLoaded then
+    warn("MOONS BYPASS já está carregado!")
+    return
+end
+getgenv().moonsBypassLoaded = true
+
+-- Serviços
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local Workspace = game:GetService("Workspace")
+
+-- GUI principal
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "MoonsBypass"
+
+-- Botão para abrir
+local openButton = Instance.new("TextButton", ScreenGui)
+openButton.Size = UDim2.new(0, 160, 0, 40)
+openButton.Position = UDim2.new(1, -170, 0, 10)
+openButton.BackgroundColor3 = Color3.fromRGB(60, 0, 90)
+openButton.Text = "Abrir Moons Bypass"
+openButton.TextColor3 = Color3.new(1,1,1)
+openButton.Font = Enum.Font.GothamBold
+openButton.TextSize = 18
+openButton.Visible = false
+openButton.ZIndex = 10
+
+-- Menu
+local mainFrame = Instance.new("Frame", ScreenGui)
+mainFrame.Size = UDim2.new(0, 300, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 40)
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+local UICorner = Instance.new("UICorner", mainFrame)
+UICorner.CornerRadius = UDim.new(0, 10)
+
+local layout = Instance.new("UIListLayout", mainFrame)
+layout.Padding = UDim.new(0, 5)
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.VerticalAlignment = Enum.VerticalAlignment.Top
+
+local title = Instance.new("TextLabel", mainFrame)
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundTransparency = 1
+title.Text = "🌙 Moons Bypass"
+title.TextColor3 = Color3.fromRGB(150, 0, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+
+-- Botão fechar
+local closeBtn = Instance.new("TextButton", mainFrame)
+closeBtn.Size = UDim2.new(0, 100, 0, 30)
+closeBtn.Text = "Fechar"
+closeBtn.TextColor3 = Color3.new(1,1,1)
+closeBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 120)
+closeBtn.Font = Enum.Font.GothamBold
+
+closeBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	openButton.Visible = true
+end)
+
+openButton.MouseButton1Click:Connect(function()
+	mainFrame.Visible = true
+	openButton.Visible = false
+end)
+
+-- Função criar botão
+local function newButton(name, callback)
+	local btn = Instance.new("TextButton", mainFrame)
+	btn.Size = UDim2.new(0, 260, 0, 30)
+	btn.BackgroundColor3 = Color3.fromRGB(60, 0, 90)
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 16
+	btn.Text = name.." [OFF]"
+	local active = false
+
+	btn.MouseButton1Click:Connect(function()
+		active = not active
+		btn.Text = name.." ["..(active and "ON" or "OFF").."]"
+		callback(active)
+	end)
+end
+
+-- Funções principais
+local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+	humanoid = char:WaitForChild("Humanoid")
+end)
+
+-- Velocidade
+newButton("Velocidade 100", function(on)
+	if on then
+		humanoid.WalkSpeed = 100
+	else
+		humanoid.WalkSpeed = 16
+	end
+end)
+
+-- Noclip
+newButton("Noclip", function(on)
+	getgenv().noclip = on
+	RunService.Stepped:Connect(function()
+		if getgenv().noclip and LocalPlayer.Character then
+			for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+				if v:IsA("BasePart") then
+					v.CanCollide = false
+				end
+			end
+		end
+	end)
+end)
+
+-- Teleporte ao clicar (corrigido)
+local teleportEnabled = false
+local teleportConnection
+
+local function enableTeleport()
+	if teleportConnection and teleportConnection.Connected then return end
+	teleportConnection = Mouse.Button1Down:Connect(function()
+		if UserInputService:GetFocusedTextBox() then return end
+		local hit = Mouse.Hit
+		if hit then
+			local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+			local hrp = char:FindFirstChild("HumanoidRootPart")
+			if hrp then
+				hrp.CFrame = CFrame.new(hit.p + Vector3.new(0, 5, 0))
+			end
+		end
+	end)
+end
+
+local function disableTeleport()
+	if teleportConnection then
+		teleportConnection:Disconnect()
+		teleportConnection = nil
+	end
+end
+
+newButton("Teleporte", function(on)
+	teleportEnabled = on
+	if teleportEnabled then enableTeleport() else disableTeleport() end
+end)
+
+-- Fly
+newButton("Fly", function(on)
+	if on then
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/ahmedmahmoudawaysali123456789-sys/script1/refs/heads/main/Protected_7380455261315382.lua.txt"))()
+	end
+end)
+
+-- Super Pulo
+newButton("Super Pulo", function(on)
+	getgenv().superJump = on
+end)
+
+UserInputService.JumpRequest:Connect(function()
+	if getgenv().superJump and humanoid then
+		local char = LocalPlayer.Character
+		if char and char:FindFirstChild("HumanoidRootPart") then
+			char.HumanoidRootPart.Velocity = Vector3.new(0, 200, 0)
+		end
+	end
+end)
+
+-- Gravidade 0
+local defaultGravity = Workspace.Gravity
+newButton("Gravidade 0", function(on)
+	if on then
+		Workspace.Gravity = 0
+	else
+		Workspace.Gravity = defaultGravity
+	end
+end)
+
+-- ESP
+local function createESP(plr)
+	if plr == LocalPlayer then return end
+	local highlight = Instance.new("Highlight")
+	highlight.FillColor = Color3.fromRGB(0, 0, 255)
+	highlight.OutlineColor = Color3.fromRGB(255, 0, 255)
+	highlight.FillTransparency = 0.5
+	highlight.Adornee = plr.Character
+	highlight.Parent = plr.Character
+end
+
+newButton("ESP", function(on)
+	if on then
+		for _, plr in pairs(Players:GetPlayers()) do
+			if plr.Character then createESP(plr) end
+		end
+		Players.PlayerAdded:Connect(function(plr)
+			plr.CharacterAdded:Connect(function()
+				wait(1)
+				createESP(plr)
+			end)
+		end)
+	else
+		for _, plr in pairs(Players:GetPlayers()) do
+			if plr.Character and plr.Character:FindFirstChildOfClass("Highlight") then
+				plr.Character:FindFirstChildOfClass("Highlight"):Destroy()
+			end
+		end
+	end
+end)
